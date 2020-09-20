@@ -8,7 +8,7 @@ namespace S3ZipSharp.Example
     class Program
     {
        
-        static async Task Main(string[] args)
+        static async Task Main()
         {
             //Console.ReadKey();
             var stopwatch = Stopwatch.StartNew();

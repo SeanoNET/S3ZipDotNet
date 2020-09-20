@@ -9,7 +9,7 @@ namespace S3ZipSharp.Services
     internal class ObjectZipper : IObjectZipper
     {
         private readonly string _tempZipPath;
-        private ReaderWriterLockSlim lock_ = new ReaderWriterLockSlim();
+        private readonly ReaderWriterLockSlim lock_ = new ReaderWriterLockSlim();
 
         public ObjectZipper(string tempZipFileName)
         {
@@ -36,10 +36,8 @@ namespace S3ZipSharp.Services
                 File.Create(_tempZipPath).Close();
 
 
-            using (ZipFile zip = new ZipFile())
-            {
+            using ZipFile zip = new ZipFile();
                 zip.Save(_tempZipPath);
-            }
         }
 
         /// <summary>
