@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.IO;
 
 namespace S3ZipSharp.Models
 {
-    class S3Object
+    internal class S3Object
     {
         public string Key { get; set; }
-        public byte[] Data { get; set; }
-
-        
+        public Stream Content { get; set; }
     }
 }

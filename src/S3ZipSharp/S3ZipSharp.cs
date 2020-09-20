@@ -1,22 +1,20 @@
 ﻿using Amazon;
-using Amazon.Runtime;
-using Amazon.S3;
+using S3ZipSharp.Interface;
 using S3ZipSharp.Models;
 using S3ZipSharp.Services;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace S3ZipSharp
 {
     public class S3ZipSharp
     {
-        string tempDir = $"{System.IO.Path.GetTempPath()}\\S3ZipSharp\\{new Random().Next(10000, 99999)}";
+        private readonly IFileRetriever _s3ClientProxy;
+        private readonly IObjectZipper _objectZipper;
 
-        private readonly Config _config;
-        private readonly S3ClientProxy _s3ClientProxy;
-        private readonly ObjectZipper _objectZipper;
         public S3ZipSharp(Config config)
         {
             if (config is null)
@@ -24,28 +22,56 @@ namespace S3ZipSharp
                 throw new ArgumentNullException(nameof(config));
             }
 
-            this._s3ClientProxy = new S3ClientProxy(new Amazon.S3.AmazonS3Client(config.AccessKeyId, config.SecretAccessKey, RegionEndpoint.APSoutheast2));
-            string _tempZipPath = $"{tempDir}\\test.zip";
-            this._objectZipper = new ObjectZipper(_tempZipPath);
-         
+            this._s3ClientProxy = new S3ClientProxy(new Amazon.S3.AmazonS3Client(config.AccessKeyId, config.SecretAccessKey, RegionEndpoint.APSoutheast2), config.BatchSize);
+            this._objectZipper = new ObjectZipper(config.TempZipPath);
+
         }
-
-        public async Task<bool> ZipBucket(string bucketName)
+        /// <summary>
+        /// Retrieves and zip objects from a s3 bucket and zip them up, uploading the zip file back into s3
+        /// </summary>
+        /// <param name="bucketName">Name of the S3 bucket</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<bool> ZipBucket(string bucketName, CancellationToken cancellationToken)
         {
-           var token = new System.Threading.CancellationToken();
-           var objects = await _s3ClientProxy.ListObjects(bucketName, "", token);
+            //Create temp zip file in zip directory
+            _objectZipper.CreateZip();
 
-            for (int i = objects.Count-1; i > 0; i--)
-            {
-                var obj = await _s3ClientProxy.FetchObject(bucketName, objects[i], token);
-                _objectZipper.ZipObject(obj.Key, obj.Data);
+            List<Task> fetchObjectsTasks = new List<Task>();
+            ConcurrentBag<IAsyncEnumerable<Models.S3Object>> cb = new ConcurrentBag<IAsyncEnumerable<Models.S3Object>>();
 
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
+            // Create tasks for downloading objects
+            await foreach (var keys in _s3ClientProxy.ListObjectsAsStream(bucketName, "", cancellationToken))
+            {                                
+                fetchObjectsTasks.Add(Task.Run(() => cb.Add(_s3ClientProxy.FetchObjectsAsStream(bucketName, keys, cancellationToken))));             
             }
-            
+
+           
+            Task.WaitAll(fetchObjectsTasks.ToArray());
+
+            // Download and zip the objects
+            List<Task> consumeTasks = new List<Task>();
+            while (!cb.IsEmpty)
+            {
+                consumeTasks.Add(Task.Run(async () =>
+                {
+                    IAsyncEnumerable<Models.S3Object> s3Object;
+                    if (cb.TryTake(out s3Object))
+                    {
+                        Console.WriteLine(s3Object);
+                        await foreach (var obj in s3Object)
+                        {
+                            _objectZipper.ZipObject(obj.Key, obj.Content);
+
+                            GC.Collect();
+                            GC.WaitForPendingFinalizers();
+                        }
+                    }
+                }));
+            }
+            Task.WaitAll(consumeTasks.ToArray());
 
             return true;
-        }
+        }       
     }
 }

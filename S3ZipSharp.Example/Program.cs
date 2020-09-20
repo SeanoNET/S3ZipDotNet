@@ -10,6 +10,7 @@ namespace S3ZipSharp.Example
        
         static async Task Main(string[] args)
         {
+            //Console.ReadKey();
             var stopwatch = Stopwatch.StartNew();
 
             var cfg = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();

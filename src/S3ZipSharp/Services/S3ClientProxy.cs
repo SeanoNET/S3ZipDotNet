@@ -1,20 +1,19 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
+using S3ZipSharp.Interface;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace S3ZipSharp.Services
 {
-    internal class S3ClientProxy
+    internal class S3ClientProxy : IFileRetriever
     {
         private readonly AmazonS3Client _s3Client;
+        private readonly int batchSize;
 
-        public S3ClientProxy(AmazonS3Client s3Client)
+        public S3ClientProxy(AmazonS3Client s3Client, int batchSize)
         {
             if (s3Client is null)
             {
@@ -22,52 +21,54 @@ namespace S3ZipSharp.Services
             }
 
             this._s3Client = s3Client;
+            this.batchSize = batchSize;
         }
-
-        public async Task<List<string>> ListObjects(string bucketName, string keyPrefix, CancellationToken token)
+        public async IAsyncEnumerable<List<string>> ListObjectsAsStream(string bucketName, string keyPrefix, CancellationToken token)
         {
-            var objects = new List<string>();
-
+            Console.WriteLine("Listing objects in S3");
             var request = new ListObjectsV2Request()
             {
                 BucketName = bucketName,
                 Prefix = keyPrefix,
-                MaxKeys = 10
+                MaxKeys = batchSize
             };
 
             ListObjectsV2Response result;
-
             do
             {
-                result = await _s3Client.ListObjectsV2Async(request, token);
-                objects.AddRange(result.S3Objects.Select(o => o.Key));
-                request.ContinuationToken = result.NextContinuationToken;
-            } while (result.IsTruncated);
 
-            return objects;
+                var keys = new List<string>();
+                result = await _s3Client.ListObjectsV2Async(request, token);
+                request.ContinuationToken = result.NextContinuationToken;
+                Console.WriteLine($"Found {result.S3Objects.Count} objects");
+                keys.AddRange(result.S3Objects.Select(o => o.Key));
+                yield return keys;
+
+            } while (result.IsTruncated);
         }
 
-        public async Task<Models.S3Object> FetchObject(string bucketName, string key, CancellationToken token)
+        public async IAsyncEnumerable<Models.S3Object> FetchObjectsAsStream(string bucketName, List<string> keys, CancellationToken token)
         {
-            var request = new GetObjectRequest()
+            Console.WriteLine("Fetching files from S3");
+            foreach (var key in keys)
             {
-                BucketName = bucketName,
-                Key = key
-            };
-
-            using (var result = await _s3Client.GetObjectAsync(request, token))
-            {
-                using (var ms = new MemoryStream())
+                var request = new GetObjectRequest()
                 {
-                    await result.ResponseStream.CopyToAsync(ms);
-                    return new Models.S3Object()
+                    BucketName = bucketName,
+                    Key = key
+                };
+
+                using (var result = await _s3Client.GetObjectAsync(request, token))
+                {
+                    Console.WriteLine($"Downloaded {key}");
+                    yield return new Models.S3Object()
                     {
                         Key = result.Key,
-                        Data = ms.ToArray()
+                        Content = result.ResponseStream
                     };
                 }
-                    
             }
+
         }
     }
 }

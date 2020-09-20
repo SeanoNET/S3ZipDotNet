@@ -1,17 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Ionic.Zip;
+using S3ZipSharp.Interface;
+using System;
 using System.IO;
-using System.IO.Compression;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace S3ZipSharp.Services
 {
-    class ObjectZipper
+    internal class ObjectZipper : IObjectZipper
     {
         private readonly string _tempZipPath;
-        
+        private ReaderWriterLockSlim lock_ = new ReaderWriterLockSlim();
 
         public ObjectZipper(string tempZipFileName)
         {
@@ -21,36 +19,47 @@ namespace S3ZipSharp.Services
             }
 
             this._tempZipPath = tempZipFileName;
+
         }
 
-        public bool ZipObject(string objectName, byte[] data)
+        /// <summary>
+        /// Creates a zip file in the temp directory to write compressed objects to
+        /// </summary>
+        public void CreateZip()
         {
             var path = Path.GetDirectoryName(_tempZipPath);
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
-            
-
             //Create zip archive
             if (!File.Exists(_tempZipPath))
                 File.Create(_tempZipPath).Close();
 
-            using (var file = new FileStream(_tempZipPath, FileMode.Open))
-            { 
-                using (ZipArchive archive = new ZipArchive(file, ZipArchiveMode.Update))
-                {
-                    var entry = archive.CreateEntry(objectName);
-                    using (var ms = new MemoryStream(data))
-                    {
-                        using (var zipStream = entry.Open())
-                        {
-                            ms.CopyTo(zipStream);
-                        }
-                    }
-                }
+
+            using (ZipFile zip = new ZipFile())
+            {
+                zip.Save(_tempZipPath);
             }
+        }
 
+        /// <summary>
+        /// Compresses object and saves it into the temp zip file
+        /// </summary>
+        /// <param name="objectName">File name</param>
+        /// <param name="data">data of the object</param>
+        /// <returns></returns>
+        public bool ZipObject(string objectName, Stream data)
+        {
+            Console.WriteLine($"Zipping object {objectName}");
+            lock_.EnterWriteLock();
+            using (ZipFile zip = ZipFile.Read(_tempZipPath))
+            {
+                zip.CompressionLevel = Ionic.Zlib.CompressionLevel.None;
 
+                zip.AddEntry(objectName, data);
+                zip.Save();
+            }
+            lock_.ExitWriteLock();
             return true;
         }
     }
