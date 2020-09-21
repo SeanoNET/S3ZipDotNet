@@ -17,4 +17,4 @@ deploy:
   draft: true
   on:
     tags: true
-    branch: pipelines
+    branch: master
