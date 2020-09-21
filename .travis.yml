@@ -6,13 +6,13 @@ script:
   - dotnet build -c Release
 #  - dotnet test
 before_deploy:
-  - dotnet pack src/S3ZipSharp/S3ZipSharp.csproj --output ../package/ -c Release 
-  - dotnet nuget push src/package/*.nupkg -k $NUGET_API_KEY -s $NUGET_SOURCE
+  - dotnet pack src/S3ZipSharp/S3ZipSharp.csproj --output src/S3ZipSharp/package/ -c Release 
+  - dotnet nuget push src/S3ZipSharp/package/*.nupkg -k $NUGET_API_KEY -s $NUGET_SOURCE
 deploy:
   provider: releases
   api_key: $GITHUB_TOKEN
   file_glob: true
-  file: src/package/*
+  file: src/S3ZipSharp/package/*
   skip_cleanup: true
   draft: true
   on:
