@@ -19,7 +19,7 @@ jobs:
         dotnet-version: 3.1.301
         source-url: https://nuget.pkg.github.com/SeanoNET/index.json
       env:
-        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        NUGET_AUTH_TOKEN: ${{secrets.PUSH_TOKEN}}
     - name: Install dependencies
       run: dotnet restore
     - name: Build
