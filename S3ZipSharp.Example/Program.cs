@@ -8,7 +8,7 @@ namespace S3ZipSharp.Example
     class Program
     {
        
-        static async Task Main(string[] args)
+        static async Task Main()
         {
             //Console.ReadKey();
             var stopwatch = Stopwatch.StartNew();
@@ -18,7 +18,7 @@ namespace S3ZipSharp.Example
             S3ZipSharp objectsZipper = new S3ZipSharp(new Models.Config() { AccessKeyId = cfg.GetSection("Aws")["AccessKey"], SecretAccessKey = cfg.GetSection("Aws")["SecretAccessKey"], AwsRegion = cfg.GetSection("Aws")["Region"] });
 
 
-            await objectsZipper.ZipBucket("s3-zip-dotnet");
+            await objectsZipper.ZipBucket("s3-zip-dotnet", new System.Threading.CancellationToken());
 
 
             Console.WriteLine($"Finished in { stopwatch.ElapsedMilliseconds}ms");

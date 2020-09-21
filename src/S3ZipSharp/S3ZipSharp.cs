@@ -47,7 +47,7 @@ namespace S3ZipSharp
             }
 
            
-            Task.WaitAll(fetchObjectsTasks.ToArray());
+            Task.WaitAll(fetchObjectsTasks.ToArray(), cancellationToken);
 
             // Download and zip the objects
             List<Task> consumeTasks = new List<Task>();
@@ -55,10 +55,8 @@ namespace S3ZipSharp
             {
                 consumeTasks.Add(Task.Run(async () =>
                 {
-                    IAsyncEnumerable<Models.S3Object> s3Object;
-                    if (cb.TryTake(out s3Object))
+                    if (cb.TryTake(out IAsyncEnumerable<S3Object> s3Object))
                     {
-                        Console.WriteLine(s3Object);
                         await foreach (var obj in s3Object)
                         {
                             _objectZipper.ZipObject(obj.Key, obj.Content);
@@ -69,7 +67,7 @@ namespace S3ZipSharp
                     }
                 }));
             }
-            Task.WaitAll(consumeTasks.ToArray());
+            Task.WaitAll(consumeTasks.ToArray(), cancellationToken);
 
             return true;
         }       
