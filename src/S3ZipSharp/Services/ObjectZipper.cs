@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace S3ZipSharp.Services
 {
-    internal class ObjectZipper : IObjectZipper
+    public class ObjectZipper : IObjectZipper
     {
         private readonly string _tempZipPath;
         private readonly ReaderWriterLockSlim lock_ = new ReaderWriterLockSlim();
@@ -32,8 +32,8 @@ namespace S3ZipSharp.Services
                 Directory.CreateDirectory(path);
 
             //Create zip archive
-            if (!File.Exists(_tempZipPath))
-                File.Create(_tempZipPath).Close();
+            //if (!File.Exists(_tempZipPath))
+            //    File.Create(_tempZipPath).Close();
 
 
             using ZipFile zip = new ZipFile();
@@ -59,6 +59,15 @@ namespace S3ZipSharp.Services
             }
             lock_.ExitWriteLock();
             return true;
+        }
+
+        /// <summary>
+        /// Checks if the file is a valid zip file
+        /// </summary>
+        /// <returns></returns>
+        public bool CheckZip()
+        {
+            return ZipFile.CheckZip(_tempZipPath);
         }
     }
 }
