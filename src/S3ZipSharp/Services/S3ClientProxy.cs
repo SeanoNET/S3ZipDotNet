@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace S3ZipSharp.Services
 {
-    internal class S3ClientProxy : IFileRetriever
+    public class S3ClientProxy : IFileRetriever
     {
         private readonly AmazonS3Client _s3Client;
         private readonly int batchSize;

@@ -22,6 +22,7 @@ namespace S3ZipSharp.Test
                 Content = new MemoryStream(file)
             };
         }
+
         [SetUp]
         public void Setup()
         {
