@@ -26,7 +26,7 @@ namespace S3ZipSharp.Services
         }
         public async IAsyncEnumerable<List<string>> ListObjectsAsStream(string bucketName, string keyPrefix, [EnumeratorCancellation] CancellationToken token)
         {
-            Console.WriteLine("Listing objects in S3");
+            Console.WriteLine($"Listing objects in bucket {bucketName}");
             var request = new ListObjectsV2Request()
             {
                 BucketName = bucketName,

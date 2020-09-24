@@ -15,7 +15,7 @@ namespace S3ZipSharp.Example
 
             var cfg = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
 
-            S3ZipSharp objectsZipper = new S3ZipSharp(new Models.Config() { AccessKeyId = cfg.GetSection("Aws")["AccessKey"], SecretAccessKey = cfg.GetSection("Aws")["SecretAccessKey"], AwsRegion = cfg.GetSection("Aws")["Region"] });
+            S3ZipSharp objectsZipper = new S3ZipSharp(new Models.Config() { AccessKeyId = cfg.GetSection("Aws")["AccessKey"], SecretAccessKey = cfg.GetSection("Aws")["SecretAccessKey"], AwsRegion = cfg.GetSection("Aws")["Region"], CompressionLevel = Models.CompressionLevel.BestSpeed });
 
 
             await objectsZipper.ZipBucket("s3-zip-dotnet", new System.Threading.CancellationToken());

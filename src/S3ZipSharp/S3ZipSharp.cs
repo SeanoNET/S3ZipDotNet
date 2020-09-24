@@ -23,7 +23,7 @@ namespace S3ZipSharp
             }
 
             this._s3ClientProxy = new S3ClientProxy(new Amazon.S3.AmazonS3Client(config.AccessKeyId, config.SecretAccessKey, RegionEndpoint.APSoutheast2), config.BatchSize);
-            this._objectZipper = new ObjectZipper(config.TempZipPath);
+            this._objectZipper = new ObjectZipper(config.TempZipPath, config.ZlibCompressionLevel);
 
         }
         /// <summary>

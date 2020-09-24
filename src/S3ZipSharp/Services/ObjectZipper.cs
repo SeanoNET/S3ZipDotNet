@@ -1,4 +1,5 @@
 ﻿using Ionic.Zip;
+using Ionic.Zlib;
 using S3ZipSharp.Interface;
 using System;
 using System.IO;
@@ -9,9 +10,10 @@ namespace S3ZipSharp.Services
     public class ObjectZipper : IObjectZipper
     {
         private readonly string _tempZipPath;
+        private readonly CompressionLevel _compressionLevel;
         private readonly ReaderWriterLockSlim lock_ = new ReaderWriterLockSlim();
 
-        public ObjectZipper(string tempZipFileName)
+        public ObjectZipper(string tempZipFileName, CompressionLevel compressionLevel)
         {
             if (String.IsNullOrEmpty(tempZipFileName))
             {
@@ -19,7 +21,7 @@ namespace S3ZipSharp.Services
             }
 
             this._tempZipPath = tempZipFileName;
-
+            this._compressionLevel = compressionLevel;
         }
 
         /// <summary>
@@ -52,8 +54,8 @@ namespace S3ZipSharp.Services
             lock_.EnterWriteLock();
             using (ZipFile zip = ZipFile.Read(_tempZipPath))
             {
-                zip.CompressionLevel = Ionic.Zlib.CompressionLevel.None;
-
+                zip.CompressionLevel = _compressionLevel;
+              
                 zip.AddEntry(objectName, data);
                 zip.Save();
             }
