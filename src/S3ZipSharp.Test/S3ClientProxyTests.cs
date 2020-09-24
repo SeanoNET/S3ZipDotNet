@@ -26,15 +26,13 @@ namespace S3ZipSharp.Test
 
             s3ClientMock
                         .Setup(x => x.GetObjectAsync(
-                           It.IsAny<string>(),
-                           It.IsAny<string>(),
+                           It.IsAny<GetObjectRequest>(),
                            It.IsAny<CancellationToken>()))
                         .ReturnsAsync(
-                           (string bucket, string key, CancellationToken ct) =>
+                           (GetObjectRequest request, CancellationToken ct) =>
                              new GetObjectResponse
                              {
-                                 BucketName = bucket,
-                                 Key = key,
+                                 Key = request.Key,
                                  HttpStatusCode = HttpStatusCode.OK,
                                  ResponseStream = GetStream(),
                              });
@@ -81,6 +79,25 @@ namespace S3ZipSharp.Test
   
             Assert.AreEqual(2, result.Count);
 
+        }
+        [Test]
+        public async Task ShouldGet2ObjectsFromFetchObjectsAsStream()
+        {
+           
+            List<string> lsKeys = new List<string>() { "test.txt", "test2.txt" };
+            List<Models.S3Object> result = new List<Models.S3Object>();
+            await foreach (var obj in s3Proxy.FetchObjectsAsStream("", lsKeys, new CancellationToken()))
+            {
+                result.Add(obj);
+            }
+
+            Assert.AreEqual(2, result.Count);
+
+            for (int i = 0; i < result.Count -1; i++)
+            {
+                Assert.AreEqual(lsKeys[i], result[i].Key);
+                Assert.NotNull(result[i].Content);
+            }
         }
 
 
