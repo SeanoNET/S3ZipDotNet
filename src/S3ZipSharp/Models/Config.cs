@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Specialized;
 using System.ComponentModel.Design;
 using System.Xml.Schema;
 
@@ -9,34 +10,36 @@ namespace S3ZipSharp.Models
     /// </summary>
     public class Config
     {
-        
-
         /// <summary>
         /// AWS access key
         /// </summary>
-        public string AccessKeyId { get; set; }
+        public readonly string AccessKeyId;
         /// <summary>
         /// AWS secret key
         /// </summary>
-        public string SecretAccessKey { get; set; }
+        public readonly string SecretAccessKey;
         /// <summary>
         /// AWS region
         /// </summary>
-        public string AwsRegion { get; set; }
+        public readonly string AwsRegion;
+        /// <summary>
+        /// Name of the S3 bucket
+        /// </summary>
+        public readonly string S3BucketName;
         /// <summary>
         /// Amount of objects to download an zip in parallel, reduce to improve memory footprint
         /// </summary>
-        public int BatchSize { get; set; } = 10;
+        public readonly int BatchSize = 10;
         /// <summary>
         /// Location of the temp zip file
         /// </summary>
-        public string TempZipPath { get { return $"{TempZipDir}\\test.zip"; } }
+        public readonly string TempZipPath;
         /// <summary>
         /// Path to the temp zip file
         /// </summary>
-        public string TempZipDir { get; set; } = $"{System.IO.Path.GetTempPath()}\\S3ZipSharp\\{new Random().Next(10000, 99999)}";
+        public readonly string TempZipDir;
 
-        internal Ionic.Zlib.CompressionLevel ZlibCompressionLevel;
+        internal Ionic.Zlib.CompressionLevel ZlibCompressionLevel = Ionic.Zlib.CompressionLevel.Default;
 
         /// <summary>
         /// Compression level when zipping files
@@ -78,6 +81,46 @@ namespace S3ZipSharp.Models
                         break;
                 }
             } 
-        }       
+
+                    
+        }
+        public Config(
+            string accessKeyId,
+            string secretAccessKey,
+            string awsRegion,
+            string s3BucketName
+            ) : this(accessKeyId, secretAccessKey, awsRegion, s3BucketName, 10,"","")
+        {
+
+        }
+
+        public Config(
+            string accessKeyId,
+            string secretAccessKey,
+            string awsRegion,
+            string s3BucketName,
+            int batchSize,
+            string tempZipPath,
+            string tempZipDir
+            )
+        {
+
+            if (String.IsNullOrEmpty(s3BucketName))
+                throw new ArgumentNullException($"Must provide {nameof(S3BucketName)}");
+
+            if (String.IsNullOrEmpty(tempZipDir))
+                tempZipDir = $"{System.IO.Path.GetTempPath()}\\S3ZipSharp\\{new Random().Next(10000, 99999)}";
+
+            if (String.IsNullOrEmpty(tempZipPath))
+                tempZipPath = $"{tempZipDir}\\test.zip";
+       
+            AccessKeyId = accessKeyId;
+            SecretAccessKey = secretAccessKey;
+            AwsRegion = awsRegion;
+            S3BucketName = s3BucketName;
+            BatchSize = batchSize;
+            TempZipPath = tempZipPath;
+            TempZipDir = tempZipDir;
+        }
     }
 }

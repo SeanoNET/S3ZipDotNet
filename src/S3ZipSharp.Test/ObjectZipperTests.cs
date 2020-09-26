@@ -26,7 +26,7 @@ namespace S3ZipSharp.Test
         [SetUp]
         public void Setup()
         {
-            this._objectZipper = new ObjectZipper(tempZipPath);
+            this._objectZipper = new ObjectZipper(tempZipPath, Ionic.Zlib.CompressionLevel.Default);
             _objectZipper.CreateZip();
         }
 
@@ -46,6 +46,18 @@ namespace S3ZipSharp.Test
       
             //Check if the file is a valid zip
             Assert.AreEqual(true, _objectZipper.CheckZip());
+        }
+
+
+        [Test]
+        public void ShouldDeleteTempZipFileOnDispose()
+        {
+            using (var zipper = new ObjectZipper(tempZipPath, Ionic.Zlib.CompressionLevel.Default))
+            {
+                zipper.CreateZip();
+            }
+
+            Assert.AreEqual(false, System.IO.File.Exists(tempZipPath));
         }
 
         [TearDown]

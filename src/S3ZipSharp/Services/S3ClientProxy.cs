@@ -1,11 +1,13 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
+using Amazon.S3.Transfer;
 using S3ZipSharp.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace S3ZipSharp.Services
 {
@@ -24,13 +26,13 @@ namespace S3ZipSharp.Services
             this._s3Client = s3Client;
             this.batchSize = batchSize;
         }
-        public async IAsyncEnumerable<List<string>> ListObjectsAsStream(string bucketName, string keyPrefix, [EnumeratorCancellation] CancellationToken token)
+        public async IAsyncEnumerable<List<string>> ListObjectsAsStream(string bucketName, string folderName, [EnumeratorCancellation] CancellationToken token)
         {
             Console.WriteLine($"Listing objects in bucket {bucketName}");
             var request = new ListObjectsV2Request()
             {
                 BucketName = bucketName,
-                Prefix = keyPrefix,
+                Prefix = folderName + "/",
                 MaxKeys = batchSize
             };
 
@@ -51,7 +53,7 @@ namespace S3ZipSharp.Services
             } while (result.IsTruncated);
         }
 
-        public async IAsyncEnumerable<Models.S3Object> FetchObjectsAsStream(string bucketName, List<string> keys, [EnumeratorCancellation] CancellationToken token)
+        public async IAsyncEnumerable<Models.S3Object> FetchObjectsAsStream(string bucketName, string folderName, List<string> keys, [EnumeratorCancellation] CancellationToken token)
         {
             Console.WriteLine("Fetching files from S3");
             foreach (var key in keys)
@@ -80,6 +82,13 @@ namespace S3ZipSharp.Services
                 }
             }
 
+        }
+
+        public Task UploadZipAsync(string zipFilePath, string bucketName, string folderName)
+        {
+            Console.WriteLine($"Uploading zip file {zipFilePath} into {bucketName}");
+            var fileTransferUtility = new TransferUtility(_s3Client);
+            return fileTransferUtility.UploadAsync(zipFilePath, bucketName);
         }
     }
 }

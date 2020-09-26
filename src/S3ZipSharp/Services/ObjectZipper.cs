@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace S3ZipSharp.Services
 {
-    public class ObjectZipper : IObjectZipper
+    public class ObjectZipper : IObjectZipper, IDisposable
     {
         private readonly string _tempZipPath;
         private readonly CompressionLevel _compressionLevel;
@@ -32,10 +32,6 @@ namespace S3ZipSharp.Services
             var path = Path.GetDirectoryName(_tempZipPath);
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
-
-            //Create zip archive
-            //if (!File.Exists(_tempZipPath))
-            //    File.Create(_tempZipPath).Close();
 
 
             using ZipFile zip = new ZipFile();
@@ -70,6 +66,14 @@ namespace S3ZipSharp.Services
         public bool CheckZip()
         {
             return ZipFile.CheckZip(_tempZipPath);
+        }
+
+        public void Dispose()
+        {
+            var path = Path.GetDirectoryName(_tempZipPath);
+
+            if (Directory.Exists(path))
+                Directory.Delete(path, true);
         }
     }
 }

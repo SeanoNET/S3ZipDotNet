@@ -22,44 +22,11 @@ namespace S3ZipSharp.Test
 
         public S3ClientProxyTests()
         {
-            var s3ClientMock = new Mock<AmazonS3Client>(FallbackCredentialsFactory.GetCredentials(true), new AmazonS3Config { RegionEndpoint = RegionEndpoint.APSoutheast2 });
-
-            s3ClientMock
-                        .Setup(x => x.GetObjectAsync(
-                           It.IsAny<GetObjectRequest>(),
-                           It.IsAny<CancellationToken>()))
-                        .ReturnsAsync(
-                           (GetObjectRequest request, CancellationToken ct) =>
-                             new GetObjectResponse
-                             {
-                                 Key = request.Key,
-                                 HttpStatusCode = HttpStatusCode.OK,
-                                 ResponseStream = GetStream(),
-                             });
-
-            s3ClientMock
-                      .Setup(x => x.ListObjectsV2Async(
-                         It.IsAny<ListObjectsV2Request>(),
-                         It.IsAny<CancellationToken>()))
-                      .ReturnsAsync(
-                         (ListObjectsV2Request request, CancellationToken ct) =>
-                           new ListObjectsV2Response
-                           {
-                               NextContinuationToken = null,
-                               S3Objects = new List<S3Object>() { new S3Object() { Key = "test.txt"}, new S3Object() { Key = "test2.txt" } }
-                           });
-
-            
-
-            s3Proxy = new S3ClientProxy(s3ClientMock.Object, 10);
+            var mockClient = new S3ClientMock().GetMockedClient();
+            s3Proxy = new S3ClientProxy(mockClient, 10);
         }
 
-        private Stream GetStream()
-        {
-            byte[] file = Convert.FromBase64String("YXNmc2Rmc2Rmc2Rnc2Rnc2Rnc2Zhc2Zhc2ZzYWY=");
-
-            return new MemoryStream(file);
-        }
+    
 
         [SetUp]
         public void Setup()
@@ -86,7 +53,7 @@ namespace S3ZipSharp.Test
            
             List<string> lsKeys = new List<string>() { "test.txt", "test2.txt" };
             List<Models.S3Object> result = new List<Models.S3Object>();
-            await foreach (var obj in s3Proxy.FetchObjectsAsStream("", lsKeys, new CancellationToken()))
+            await foreach (var obj in s3Proxy.FetchObjectsAsStream("","", lsKeys, new CancellationToken()))
             {
                 result.Add(obj);
             }

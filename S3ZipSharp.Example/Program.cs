@@ -15,10 +15,14 @@ namespace S3ZipSharp.Example
 
             var cfg = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
 
-            S3ZipSharp objectsZipper = new S3ZipSharp(new Models.Config() { AccessKeyId = cfg.GetSection("Aws")["AccessKey"], SecretAccessKey = cfg.GetSection("Aws")["SecretAccessKey"], AwsRegion = cfg.GetSection("Aws")["Region"], CompressionLevel = Models.CompressionLevel.BestSpeed });
+            S3ZipSharp objectsZipper = new S3ZipSharp(new Models.Config(cfg.GetSection("Aws")["AccessKey"], cfg.GetSection("Aws")["SecretAccessKey"], cfg.GetSection("Aws")["Region"], "s3-zip-dotnet"));
 
+            objectsZipper.filterOutFiles = (key) =>
+            {
+                return !key.Contains(".txt");
+            };
 
-            await objectsZipper.ZipBucket("s3-zip-dotnet", new System.Threading.CancellationToken());
+            await objectsZipper.ZipBucket("store-test","test.zip", new System.Threading.CancellationToken());
 
 
             Console.WriteLine($"Finished in { stopwatch.ElapsedMilliseconds}ms");
