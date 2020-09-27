@@ -9,7 +9,7 @@ namespace S3ZipSharp.Test
 {
     public class ObjectZipperTests
     {
-        private string tempZipPath = $"{AppDomain.CurrentDomain.BaseDirectory}temp\\test.zip";
+        private readonly string tempZipPath = $"{AppDomain.CurrentDomain.BaseDirectory}temp\\test.zip";
         private ObjectZipper _objectZipper;
 
         private S3Object GetTestObject()

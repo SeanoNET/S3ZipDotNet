@@ -47,7 +47,9 @@ namespace S3ZipSharp
         public async Task<bool> ZipBucket(string s3FolderName, string s3ZipFileName, CancellationToken cancellationToken)
         {
 
+#pragma warning disable IDE0063 // Use simple 'using' statement
             using (var objectZipper = new ObjectZipper(config.TempZipPath, config.ZlibCompressionLevel, _logger))
+#pragma warning restore IDE0063 // Use simple 'using' statement
             {
                 //Create temp zip file in zip directory
                 objectZipper.CreateZip();

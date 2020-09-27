@@ -87,11 +87,11 @@ namespace S3ZipSharp.Services
 
         }
 
-        public Task UploadZipAsync(string zipFilePath, string bucketName, string folderName)
+        public Task UploadZipAsync(string zipFilePath, string bucketName, string s3ZipFileName)
         {
-            _logger?.LogTrace($"Uploading zip file {zipFilePath} into {bucketName}");
+            _logger?.LogTrace($"Uploading zip file {zipFilePath} into {bucketName}/{s3ZipFileName}");
             var fileTransferUtility = new TransferUtility(_s3Client);
-            return fileTransferUtility.UploadAsync(zipFilePath, bucketName);
+            return fileTransferUtility.UploadAsync(zipFilePath, bucketName, s3ZipFileName);
         }
     }
 }

@@ -18,7 +18,7 @@ namespace S3ZipSharp.Test
 {
     class S3ClientProxyTests
     {
-        IFileRetriever s3Proxy;
+        readonly IFileRetriever s3Proxy;
 
         public S3ClientProxyTests()
         {

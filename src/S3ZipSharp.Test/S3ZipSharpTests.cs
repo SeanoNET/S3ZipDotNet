@@ -10,14 +10,6 @@ namespace S3ZipSharp.Test
 {
     class S3ZipSharpTests
     {
-        IFileRetriever s3Proxy;
-
-        [SetUp]
-        public void Setup()
-        {
-            var mockClient = new S3ClientMock().GetMockedClient();
-            s3Proxy = new S3ClientProxy(mockClient, 10, null);
-        }
 
         [Test]
         public void ThrowsOnMissingS3BucketInConfiguration()
