@@ -23,7 +23,7 @@ namespace S3ZipSharp.Test
         public S3ClientProxyTests()
         {
             var mockClient = new S3ClientMock().GetMockedClient();
-            s3Proxy = new S3ClientProxy(mockClient, 10);
+            s3Proxy = new S3ClientProxy(mockClient, 10, null);
         }
 
     

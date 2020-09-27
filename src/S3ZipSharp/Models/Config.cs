@@ -106,13 +106,13 @@ namespace S3ZipSharp.Models
         {
 
             if (String.IsNullOrEmpty(s3BucketName))
-                throw new ArgumentNullException($"Must provide {nameof(S3BucketName)}");
+                throw new ArgumentNullException($"Must provide bucket name", nameof(S3BucketName));
 
             if (String.IsNullOrEmpty(tempZipDir))
-                tempZipDir = $"{System.IO.Path.GetTempPath()}\\S3ZipSharp\\{new Random().Next(10000, 99999)}";
+                tempZipDir = $"{System.IO.Path.GetTempPath()}\\S3ZipSharp\\{DateTime.Now.Ticks}";
 
             if (String.IsNullOrEmpty(tempZipPath))
-                tempZipPath = $"{tempZipDir}\\test.zip";
+                tempZipPath = $"{tempZipDir}\\tmp{new Random().Next(10000, 99999)}.zip";
        
             AccessKeyId = accessKeyId;
             SecretAccessKey = secretAccessKey;

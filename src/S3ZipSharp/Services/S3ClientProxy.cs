@@ -15,8 +15,9 @@ namespace S3ZipSharp.Services
     {
         private readonly AmazonS3Client _s3Client;
         private readonly int batchSize;
+        private readonly ILogger _logger;
 
-        public S3ClientProxy(AmazonS3Client s3Client, int batchSize)
+        public S3ClientProxy(AmazonS3Client s3Client, int batchSize, ILogger logger)
         {
             if (s3Client is null)
             {
@@ -25,10 +26,12 @@ namespace S3ZipSharp.Services
 
             this._s3Client = s3Client;
             this.batchSize = batchSize;
+            this._logger = logger;
         }
         public async IAsyncEnumerable<List<string>> ListObjectsAsStream(string bucketName, string folderName, [EnumeratorCancellation] CancellationToken token)
         {
-            Console.WriteLine($"Listing objects in bucket {bucketName}");
+            _logger?.LogTrace($"Listing objects in bucket {bucketName}");
+
             var request = new ListObjectsV2Request()
             {
                 BucketName = bucketName,
@@ -46,7 +49,7 @@ namespace S3ZipSharp.Services
                 var keys = new List<string>();
                 result = await _s3Client.ListObjectsV2Async(request, token);
                 request.ContinuationToken = result.NextContinuationToken;
-                Console.WriteLine($"Found {result.S3Objects.Count} objects");
+                _logger?.LogTrace($"Found {result.S3Objects.Count} objects");
                 keys.AddRange(result.S3Objects.Select(o => o.Key));
                 yield return keys;
 
@@ -55,7 +58,7 @@ namespace S3ZipSharp.Services
 
         public async IAsyncEnumerable<Models.S3Object> FetchObjectsAsStream(string bucketName, string folderName, List<string> keys, [EnumeratorCancellation] CancellationToken token)
         {
-            Console.WriteLine("Fetching files from S3");
+            _logger?.LogTrace("Fetching files from S3");
             foreach (var key in keys)
             {
                 if (token.IsCancellationRequested)
@@ -73,7 +76,7 @@ namespace S3ZipSharp.Services
                 using (var result = await _s3Client.GetObjectAsync(request, token))
 #pragma warning restore IDE0063 // Use simple 'using' statement
                 {
-                    Console.WriteLine($"Downloaded {key}");
+                    _logger?.LogTrace($"Downloaded {key}");
                     yield return new Models.S3Object()
                     {
                         Key = result.Key,
@@ -86,7 +89,7 @@ namespace S3ZipSharp.Services
 
         public Task UploadZipAsync(string zipFilePath, string bucketName, string folderName)
         {
-            Console.WriteLine($"Uploading zip file {zipFilePath} into {bucketName}");
+            _logger?.LogTrace($"Uploading zip file {zipFilePath} into {bucketName}");
             var fileTransferUtility = new TransferUtility(_s3Client);
             return fileTransferUtility.UploadAsync(zipFilePath, bucketName);
         }

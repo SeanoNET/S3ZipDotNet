@@ -15,21 +15,28 @@ namespace S3ZipSharp
     {
         private readonly IFileRetriever _s3ClientProxy;
         private readonly Config config;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Filter out files using the name of the file
         /// </summary>
         public Func<string, bool> filterOutFiles;
-        
-        public S3ZipSharp(Config config)
+
+        public S3ZipSharp(Config config) : this(config, null)
+        {
+        }
+
+        public S3ZipSharp(Config config, ILogger logger)
         {
             if (config is null)
             {
                 throw new ArgumentNullException(nameof(config));
             }
 
-            this._s3ClientProxy = new S3ClientProxy(new Amazon.S3.AmazonS3Client(config.AccessKeyId, config.SecretAccessKey, RegionEndpoint.APSoutheast2), config.BatchSize);
+            
             this.config = config;
+            this._logger = logger;
+            this._s3ClientProxy = new S3ClientProxy(new Amazon.S3.AmazonS3Client(config.AccessKeyId, config.SecretAccessKey, RegionEndpoint.APSoutheast2), config.BatchSize, _logger);
         }
         /// <summary>
         /// Retrieves and zip objects from a s3 bucket and zip them up, uploading the zip file back into s3
@@ -40,7 +47,7 @@ namespace S3ZipSharp
         public async Task<bool> ZipBucket(string s3FolderName, string s3ZipFileName, CancellationToken cancellationToken)
         {
 
-            using (var objectZipper = new ObjectZipper(config.TempZipPath, config.ZlibCompressionLevel))
+            using (var objectZipper = new ObjectZipper(config.TempZipPath, config.ZlibCompressionLevel, _logger))
             {
                 //Create temp zip file in zip directory
                 objectZipper.CreateZip();

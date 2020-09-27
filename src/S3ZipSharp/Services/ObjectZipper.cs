@@ -11,9 +11,10 @@ namespace S3ZipSharp.Services
     {
         private readonly string _tempZipPath;
         private readonly CompressionLevel _compressionLevel;
+        private readonly ILogger _logger;
         private readonly ReaderWriterLockSlim lock_ = new ReaderWriterLockSlim();
 
-        public ObjectZipper(string tempZipFileName, CompressionLevel compressionLevel)
+        public ObjectZipper(string tempZipFileName, CompressionLevel compressionLevel, ILogger logger)
         {
             if (String.IsNullOrEmpty(tempZipFileName))
             {
@@ -22,6 +23,7 @@ namespace S3ZipSharp.Services
 
             this._tempZipPath = tempZipFileName;
             this._compressionLevel = compressionLevel;
+            this._logger = logger;
         }
 
         /// <summary>
@@ -46,7 +48,7 @@ namespace S3ZipSharp.Services
         /// <returns></returns>
         public bool ZipObject(string objectName, Stream data)
         {
-            Console.WriteLine($"Zipping object {objectName}");
+            _logger?.LogTrace($"Zipping object {objectName}");
             lock_.EnterWriteLock();
             using (ZipFile zip = ZipFile.Read(_tempZipPath))
             {
