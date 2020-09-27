@@ -30,8 +30,8 @@ namespace S3ZipSharp.Test
         {
             var config = new Models.Config("","","","test");
 
-            Assert.IsTrue(config.TempZipDir.Contains($"{System.IO.Path.GetTempPath()}\\S3ZipSharp"));
-            Assert.IsTrue(config.TempZipPath.Contains($"{System.IO.Path.GetTempPath()}\\S3ZipSharp") && config.TempZipPath.Contains(@"test.zip"));
+            Assert.IsTrue(config.TempZipDir.Contains($"{System.IO.Path.GetTempPath()}\\S3ZipSharp\\"));
+            Assert.IsTrue(config.TempZipPath.Contains(@"tmp"));
             Assert.AreEqual(CompressionLevel.Default, config.CompressionLevel);
         }
     }

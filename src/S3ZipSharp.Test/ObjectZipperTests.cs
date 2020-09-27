@@ -26,7 +26,7 @@ namespace S3ZipSharp.Test
         [SetUp]
         public void Setup()
         {
-            this._objectZipper = new ObjectZipper(tempZipPath, Ionic.Zlib.CompressionLevel.Default);
+            this._objectZipper = new ObjectZipper(tempZipPath, Ionic.Zlib.CompressionLevel.Default, null);
             _objectZipper.CreateZip();
         }
 
@@ -52,7 +52,7 @@ namespace S3ZipSharp.Test
         [Test]
         public void ShouldDeleteTempZipFileOnDispose()
         {
-            using (var zipper = new ObjectZipper(tempZipPath, Ionic.Zlib.CompressionLevel.Default))
+            using (var zipper = new ObjectZipper(tempZipPath, Ionic.Zlib.CompressionLevel.Default, null))
             {
                 zipper.CreateZip();
             }
