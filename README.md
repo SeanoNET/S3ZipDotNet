@@ -71,7 +71,7 @@ await objectsZipper.ZipBucket("documents", "documents.zip", new System.Threading
 
 ## Filtering out files
 
-If you wanted to ignore pdf files when zipping, you can include a filterOutFiles parameter.
+For example, if you wanted to ignore pdf files when zipping, you can include a filterOutFiles parameter.
 
 ```csharp
 //key is the name of the file or object on s3.
